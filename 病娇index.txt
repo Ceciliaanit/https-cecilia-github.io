@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>测测你的病娇属性有多少</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+body{
+  background:#140d11;
+  color:#f2d6dd;
+  min-height:100vh;
+  padding-bottom:40px;
+}
+header{
+  position:sticky;
+  top:0;
+  background:#1b1015;
+  padding:14px 16px;
+  text-align:center;
+  border-bottom:1px solid #552536;
+  z-index:10;
+}
+header h1{
+  font-size:18px;
+  font-weight:500;
+  color:#ffb8c8;
+}
+.container{
+  width:92%;
+  margin:24px auto 0;
+}
+.page{
+  display:none;
+}
+.page.active{
+  display:block;
+}
+/* 封面页 */
+.cover{
+  text-align:center;
+  margin-top:40px;
+}
+.cover h2{
+  font-size:24px;
+  color:#ffb8c8;
+  margin-bottom:18px;
+}
+.cover .intro{
+  line-height:1.7;
+  color:#e0b5c1;
+  font-size:15px;
+  margin-bottom:36px;
+}
+.btn{
+  display:block;
+  width:100%;
+  max-width:260px;
+  margin:0 auto;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  background:#6b283d;
+  color:#ffe4eb;
+  font-size:16px;
+  cursor:pointer;
+}
+.btn:active{
+  background:#88324c;
+}
+/* 答题页 */
+.q-title{
+  font-size:16px;
+  line-height:1.6;
+  margin-bottom:24px;
+  color:#f8d9e2;
+}
+.q-index{
+  font-size:14px;
+  color:#b8778b;
+  margin-bottom:10px;
+}
+.option-item{
+  padding:14px 16px;
+  border:1px solid #4d2030;
+  border-radius:10px;
+  margin-bottom:12px;
+  cursor:pointer;
+  background:#1c1117;
+}
+.option-item:active,.option-item.selected{
+  background:#4b1f30;
+  border-color:#c45878;
+}
+.next-wrap{
+  margin-top:28px;
+}
+/* 结果页 */
+.result-box{
+  border:1px solid #552536;
+  border-radius:12px;
+  padding:22px;
+  background:#1a0f14;
+  margin-top:20px;
+}
+.result-title{
+  text-align:center;
+  font-size:20px;
+  color:#ffb8c8;
+  margin-bottom:16px;
+}
+.result-text{
+  line-height:1.8;
+  font-size:15px;
+  color:#eac8d2;
+}
+.restart-btn{
+  margin-top:30px;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>测测你的病娇属性有多少</h1>
+</header>
+<div class="container">
+  <!-- 封面 -->
+  <div class="page active" id="page-cover">
+    <div class="cover">
+      <h2>测测你的病娇属性</h2>
+      <div class="intro">
+        本测试仅供娱乐，不代表真实性格。<br>
+        看看藏在心底里的占有欲，到底到了哪一步？<br>
+        一共20题，请凭第一直觉选择答案。
+      </div>
+      <button class="btn" onclick="goTo(1)">开始测试</button>
+    </div>
+  </div>
+
+  <!-- 题目容器，js动态渲染 -->
+  <div id="question-wrap"></div>
+
+  <!-- 结果页 -->
+  <div class="page" id="page-result">
+    <div class="result-box">
+      <div class="result-title" id="res-title"></div>
+      <div class="result-text" id="res-content"></div>
+    </div>
+    <button class="btn restart-btn" onclick="restartTest()">重新测试</button>
+  </div>
+</div>
+
+<script>
+// 20道题目，每题4个选项，每个选项对应分值
+const questions = [
+  {q:"喜欢的人跟异性聊天，你的第一想法？",o:[{t:"只是普通朋友，没关系",s:1},{t:"有点不舒服，但不会说",s:3},{t:"心里很介意，默默记下来",s:6},{t:"很生气，不想他们再有来往",s:10}]},
+  {q:"如果对方不回消息很久，你会？",o:[{t:"他在忙，晚点再说",s:1},{t:"有点失落，等他回复",s:3},{t:"反复看对话框，胡思乱想",s:6},{t:"疯狂发消息，想知道他在哪",s:10}]},
+  {q:"你能不能接受对方有很好的异性闺蜜？",o:[{t:"完全可以，信任最重要",s:1},{t:"勉强接受，但会留意",s:3},{t:"不太能接受，会吃醋",s:6},{t:"绝对不可以，必须断掉",s:10}]},
+  {q:"你希望喜欢的人？",o:[{t:"拥有自己自由的社交圈",s:1},{t:"多陪我，但也要有自己生活",s:3},{t:"大部分时间都属于我",s:6},{t:"只属于我一个人",s:10}]},
+  {q:"对方隐瞒一件小事，你会？",o:[{t:"可能有原因，理解他",s:1},{t:"有点在意，问问清楚",s:3},{t:"开始怀疑他是不是变心",s:6},{t:"觉得他在欺骗，很难原谅",s:10}]},
+  {q:"看到别人夸你喜欢的人好看，你？",o:[{t:"为他开心",s:1},{t:"有点小醋意",s:3},{t:"心里很不爽",s:6},{t:"不希望别人注意到他",s:10}]},
+  {q:"你会不会偷偷保存对方照片？",o:[{t:"不会，没必要",s:1},{t:"偶尔存几张好看的",s:3},{t:"收集很多，经常翻看",s:6},{t:"偷偷存，当作专属收藏",s:10}]},
+  {q:"如果两个人吵架，你倾向？",o:[{t:"冷静沟通解决问题",s:1},{t:"难过，等缓和再聊",s:3},{t:"害怕他会离开自己",s:6},{t:"宁愿极端一点留住他",s:10}]},
+  {q:"你了解喜欢的人的行踪吗？",o:[{t:"不会刻意打听",s:1},{t:"他主动告诉我我才知道",s:3},{t:"会下意识想问他去哪",s:6},{t:"希望随时知道他在哪",s:10}]},
+  {q:"你认为爱情里占有欲？",o:[{t:"越少越好，互相自由",s:1},{t:"有一点很正常",s:3},{t:"占有欲强才是深爱",s:6},{t:"爱就是要完全占有对方",s:10}]},
+  {q:"对方说想要一点独处空间，你？",o:[{t:"尊重，给他空间",s:1},{t:"有点舍不得，但答应",s:3},{t:"害怕他不想理我了",s:6},{t:"不想给他独处的机会",s:10}]},
+  {q:"你会翻喜欢的人的社交动态吗？",o:[{t:"不会特意去翻",s:1},{t:"有空会简单看看",s:3},{t:"经常翻，从头看到尾",s:6},{t:"反复翻看，寻找线索",s:10}]},
+  {q:"如果有人追你喜欢的人，你？",o:[{t:"看他自己选择",s:1},{t:"心里紧张，暗示对方",s:3},{t:"很有危机感，警惕对手",s:6},{t:"想办法让对方远离他",s:10}]},
+  {q:"你能不能接受对方对你有所保留？",o:[{t:"每个人都有秘密",s:1},{t:"可以保留一部分",s:3},{t:"希望他什么都跟我说",s:6},{t:"不能有任何秘密瞒着我",s:10}]},
+  {q:"分开一段时间，你更容易？",o:[{t:"各自好好生活",s:1},{t:"想念，但克制自己",s:3},{t:"情绪低落，一直想他",s:6},{t:"难以忍受分离",s:10}]},
+  {q:"你想象里的偏爱是？",o:[{t:"平等温柔的陪伴",s:1},{t:"心里我比较重要",s:3},{t:"优先考虑我的感受",s:6},{t:"我是他唯一的例外",s:10}]},
+  {q:"对方忘记和你的约定，你？",o:[{t:"原谅，下次注意",s:1},{t:"有点难过",s:3},{t:"会怀疑自己不重要",s:6},{t:"很难释怀，耿耿于怀",s:10}]},
+  {q:"你会不会幻想和喜欢的人永远捆绑在一起？",o:[{t:"很少这样想",s:1},{t:"偶尔幻想美好未来",s:3},{t:"经常幻想只属于我们",s:6},{t:"幻想永远不分开，不能逃离",s:10}]},
+  {q:"当对方忽略你的情绪，你？",o:[{t:"自己调节好",s:1},{t:"委婉跟他说感受",s:3},{t:"委屈，害怕被抛弃",s:6},{t:"情绪会失控，很偏执",s:10}]},
+  {q:"你觉得如果失去他，你会？",o:[{t:"慢慢走出来",s:1},{t:"难过很久，但会放下",s:3},{t:"很难接受这件事",s:6},{t:"无法承受失去",s:10}]},
+];
+
+// 50条结果，分数区间：总分范围 20~200
+const resultList = [
+  {min:20,max:23,title:"病娇值：5%｜阳光佛系选手",txt:"你的占有欲很低，尊重自由，喜欢舒服松弛的关系，几乎没有病娇特质，温柔通透。"},
+  {min:24,max:27,title:"病娇值：8%｜松弛爱人",txt:"你相信信任是感情基础，很少吃醋，不会束缚对方，是很让人安心的类型。"},
+  {min:28,max:31,title:"病娇值：10%｜清醒温柔派",txt:"偏爱自由恋爱，占有欲浅浅的，就算吃醋也会克制自己，理性优先。"},
+  {min:32,max:35,title:"病娇值：13%｜温和懂事型",txt:"很少胡思乱想，懂得给对方空间，情绪稳定，不容易钻牛角尖。"},
+  {min:36,max:39,title:"病娇值：15%｜淡淡的喜欢",txt:"喜欢归喜欢，但不会把对方攥紧，独立感很强，不容易陷入偏执。"},
+  {min:40,max:43,title:"病娇值：18%｜小醋包预备役",txt:"偶尔会吃醋，但很快调整心态，只是一点点小在意，完全不偏执。"},
+  {min:44,max:47,title:"病娇值：20%｜浅度心动占有",txt:"心里会在意，但行动上很克制，只会悄悄吃醋，不会干涉对方社交。"},
+  {min:48,max:51,title:"病娇值：23%｜软乎乎醋坛子",txt:"很容易吃小醋，会偷偷难过，但不会闹，默默消化情绪。"},
+  {min:52,max:55,title:"病娇值：25%｜温柔占有萌芽",txt:"开始在意自己在对方心里的位置，期待被偏爱，但依旧保有理智。"},
+  {min:56,max:59,title:"病娇值：28%｜敏感温柔选手",txt:"心思细腻，容易多想，会因为对方冷淡失落，但不会做出过激行为。"},
+  {min:60,max:63,title:"病娇值：30%｜轻度占有欲",txt:"你很看重专属感，希望自己是特别的，偶尔胡思乱想，偏向敏感。"},
+  {min:64,max:67,title:"病娇值：33%｜容易患得患失",txt:"很害怕被冷落，对方不回消息就会脑补很多，安全感偏弱。"},
+  {min:68,max:71,title:"病娇值：35%｜黏人小可爱",txt:"很喜欢黏着喜欢的人，希望多多陪伴，占有欲慢慢上涨。"},
+  {min:72,max:75,title:"病娇值：38%｜专属偏爱爱好者",txt:"你很需要独一无二的偏爱，看到别人靠近他会明显不舒服。"},
+  {min:76,max:79,title:"病娇值：40%｜隐性吃醋怪",txt:"表面装作无所谓，心里已经翻江倒海，习惯把情绪藏起来。"},
+  {min:80,max:83,title:"病娇值：43%｜安全感缺失型",txt:"一旦投入感情就很依赖，害怕被丢下，会悄悄留意对方动向。"},
+  {min:84,max:87,title:"病娇值：45%｜半糖占有",txt:"一半理智一半私心，想放手又舍不得，纠结在自由和占有之间。"},
+  {min:88,max:91,title:"病娇值：48%｜悄悄盯梢型",txt:"会忍不住翻看对方动态，默默留意异性，但是不会主动发难。"},
+  {min:92,max:95,title:"病娇值：50%｜对半病娇",txt:"理智和偏执五五开，平时很温柔，触碰底线的时候占有欲爆发。"},
+  {min:96,max:99,title:"病娇值：53%｜温柔带刺",txt:"外表温顺，内心占有欲不低，你的底线是：不要欺骗和隐瞒。"},
+  {min:100,max:103,title:"病娇值：55%｜执念开始发芽",txt:"认定一个人之后很难放下，会期待对方只向着自己。"},
+  {min:104,max:107,title:"病娇值：58%｜重度敏感",txt:"一点点疏离都能被你捕捉到，很容易陷入“他不爱我”的猜想。"},
+  {min:108,max:111,title:"病娇值：60%｜占有欲明显",txt:"不喜欢他和异性走太近，会直接表达介意，希望他主动避嫌。"},
+  {min:112,max:115,title:"病娇值：63%｜黏人偏执向",txt:"很贪恋对方的陪伴，独处的时候容易胡思乱想，情绪跟着他走。"},
+  {min:116,max:119,title:"病娇值：65%｜藏起来的执念",txt:"外人觉得你温和，只有你自己知道，你很想要独占这份爱意。"},
+  {min:120,max:123,title:"病娇值：68%｜醋意爆棚选手",txt:"看到别人靠近喜欢的人，嫉妒感会直接涌上来，很难假装淡定。"},
+  {min:124,max:127,title:"病娇值：70%｜病娇潜力股",txt:"你有很强的专属欲，爱上之后，很难接受分享爱意。"},
+  {min:128,max:131,title:"病娇值：73%｜害怕失去型",txt:"失去的念头会让你恐慌，会下意识想要牢牢抓住对方。"},
+  {min:132,max:135,title:"病娇值：75%｜温柔牢笼",txt:"你的爱意带着束缚，你想把喜欢的人圈在自己身边好好守护。"},
+  {min:136,max:139,title:"病娇值：78%｜隐性偏执",txt:"理智还在，但心底已经有了偏执的苗头，越爱越怕分开。"},
+  {min:140,max:143,title:"病娇值：80%｜高病娇属性",txt:"爱对你来说就是独占，很难容忍第三者的存在，执念很深。"},
+  {min:144,max:147,title:"病娇值：83%｜深情且偏执",txt:"一旦动心，全部重心放在对方身上，很容易失去自我。"},
+  {min:148,max:151,title:"病娇值：85%｜占有至上",txt:"你理想的爱情是：你是他唯一，他也只能属于你。"},
+  {min:152,max:155,title:"病娇值：88%｜警惕感拉满",txt:"对靠近他的异性敌意很重，会默默观察、防备所有人。"},
+  {min:156,max:159,title:"病娇值：90%｜甜系病娇",txt:"外表甜甜的，内里占有欲极强，喜欢就是要全部拿下。"},
+  {min:160,max:163,title:"病娇值：92%｜执念很深",txt:"很难接受分离，分开对你来说是很难承受的打击。"},
+  {min:164,max:167,title:"病娇值：93%｜危险甜意",txt:"爱意裹挟偏执，越喜欢，越想把对方牢牢锁住。"},
+  {min:168,max:171,title:"病娇值：94%｜重度病娇预备",txt:"你的世界很容易围着喜欢的人转，分离焦虑非常严重。"},
+  {min:172,max:175,title:"病娇值：95%｜独占是本能",txt:"爱=独占，分享爱意这件事，你完全无法接受。"},
+  {min:176,max:179,title:"病娇值：96%｜偏执深情",txt:"认定之后，很难放手，愿意为留住喜欢的人付出很多。"},
+  {min:180,max:183,title:"病娇值：97%｜浓烈的枷锁",txt:"你的爱意厚重又沉重，带着强烈的控制欲和不舍。"},
+  {min:184,max:187,title:"病娇值：98%｜高浓度病娇",txt:"几乎满值的占有欲，你想要对方完完全全只属于你。"},
+  {min:188,max:191,title:"病娇值：98.5%｜偏执天花板",txt:"感情里排他性极强，不能容忍一丝一毫的偏离。"},
+  {min:192,max:195,title:"病娇值：99%｜极致占有",txt:"你心里的爱意带着疯狂，只想和喜欢的人永远捆绑在一起。"},
+  {min:196,max:200,title:"病娇值：100%｜满级病娇",txt:"💜满级病娇，一旦爱上，你希望他眼里、世界里只有你，永远不能逃离。"},
+];
+
+let currentQ = 0;
+let scoreArr = Array(questions.length).fill(null);
+
+// 渲染题目
+function renderQuestion(){
+  const wrap = document.getElementById("question-wrap");
+  wrap.innerHTML = "";
+  const q = questions[currentQ];
+  let html = `<div class="page active" id="qpage-${currentQ}">
+    <div class="q-index">第 ${currentQ+1} / ${questions.length} 题</div>
+    <div class="q-title">${q.q}</div>`;
+  q.o.forEach((opt,idx)=>{
+    const selClass = scoreArr[currentQ] === idx ? "selected" : "";
+    html += `<div class="option-item ${selClass}" onclick="selectOpt(${idx})">${opt.t}</div>`;
+  })
+  html += `<div class="next-wrap"><button class="btn" onclick="nextQuestion()">下一题</button></div></div>`;
+  wrap.innerHTML = html;
+}
+
+function selectOpt(idx){
+  scoreArr[currentQ] = idx;
+  renderQuestion();
+}
+
+function nextQuestion(){
+  if(scoreArr[currentQ] === null){
+    alert("请选择一个选项");
+    return;
+  }
+  currentQ++;
+  if(currentQ >= questions.length){
+    calcResult();
+    goTo("result");
+  }else{
+    renderQuestion();
+  }
+}
+
+function calcResult(){
+  let total = 0;
+  for(let i=0;i<questions.length;i++){
+    const sIdx = scoreArr[i];
+    total += questions[i].o[sIdx].s;
+  }
+  let res = resultList[0];
+  for(let r of resultList){
+    if(total >= r.min && total <= r.max){
+      res = r;
+      break;
+    }
+  }
+  document.getElementById("res-title").innerText = res.title;
+  document.getElementById("res-content").innerText = res.txt;
+}
+
+function goTo(target){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  if(target === 1){
+    currentQ = 0;
+    renderQuestion();
+  }else if(target === "result"){
+    document.getElementById("page-result").classList.add("active");
+  }
+}
+
+function restartTest(){
+  currentQ = 0;
+  scoreArr = Array(questions.length).fill(null);
+  goTo(1);
+}
+</script>
+</body>
+</html>
